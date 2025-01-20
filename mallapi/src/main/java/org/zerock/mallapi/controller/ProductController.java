@@ -31,9 +31,8 @@ import lombok.extern.log4j.Log4j2;
 public class ProductController {
   private final CustomFileUtil fileUtil;
   private final ProductService productService;
-
   @PostMapping("/")
-  public Map<String, Long> register(ProductDTO productDTO) {
+  public Map<String, Long> register(ProductDTO productDTO){
     log.info("register: " + productDTO);
     List<MultipartFile> files = productDTO.getFiles();
     List<String> uploadFileNames = fileUtil.saveFiles(files);
@@ -41,63 +40,58 @@ public class ProductController {
     log.info(uploadFileNames);
     Long pno = productService.register(productDTO);
     // try {
-    // Thread.sleep(2000);
+    //   Thread.sleep(2000);
     // }catch (InterruptedException e) {
-    // e.printStackTrace();
+    //   e.printStackTrace();
     // }
     return Map.of("result", pno);
   }
-
   @GetMapping("/view/{fileName}")
   public ResponseEntity<Resource> viewFileGET(@PathVariable("fileName") String fileName) {
     return fileUtil.getFile(fileName);
   }
-
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
   @GetMapping("/list")
   public PageResponseDTO<ProductDTO> list(PageRequestDTO pageRequestDTO) {
     log.info("list............" + pageRequestDTO);
     return productService.getList(pageRequestDTO);
   }
-
   @GetMapping("/{pno}")
   public ProductDTO read(@PathVariable("pno") Long pno) {
     // try {
-    // Thread.sleep(2000);
+    //   Thread.sleep(2000);
     // }catch (InterruptedException e) {
-    // e.printStackTrace();
+    //   e.printStackTrace();
     // }
     return productService.get(pno);
   }
-
   @PutMapping("/{pno}")
   public Map<String, String> modify(@PathVariable("pno") Long pno,
-      ProductDTO productDTO) {
+    ProductDTO productDTO) {
     productDTO.setPno(pno);
     ProductDTO oldProductDTO = productService.get(pno);
     List<String> oldFileNames = oldProductDTO.getUploadFileNames();
     List<MultipartFile> files = productDTO.getFiles();
     List<String> currentUploadFileNames = fileUtil.saveFiles(files);
     List<String> uploadedFileNames = productDTO.getUploadFileNames();
-    if (currentUploadFileNames != null && currentUploadFileNames.size() > 0) {
+    if(currentUploadFileNames != null && currentUploadFileNames.size() > 0) {
       uploadedFileNames.addAll(currentUploadFileNames);
     }
     productService.modify(productDTO);
-    if (oldFileNames != null && oldFileNames.size() > 0) {
+    if(oldFileNames != null && oldFileNames.size() > 0){
       List<String> removeFiles = oldFileNames
-          .stream()
-          .filter(fileName -> uploadedFileNames.indexOf(fileName) == -1)
-          .collect(Collectors.toList());
+      .stream()
+      .filter(fileName -> uploadedFileNames.indexOf(fileName) == -1)
+      .collect(Collectors.toList());
       fileUtil.deleteFiles(removeFiles);
     }
     // try {
-    // Thread.sleep(2000);
+    //   Thread.sleep(2000);
     // }catch (InterruptedException e) {
-    // e.printStackTrace();
+    //   e.printStackTrace();
     // }
     return Map.of("RESULT", "SUCCESS");
   }
-
   @DeleteMapping("/{pno}")
   public Map<String, String> remove(@PathVariable("pno") Long pno) {
     List<String> oldFileNames = productService.get(pno).getUploadFileNames();
